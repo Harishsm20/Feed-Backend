@@ -2,21 +2,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
 const app = express();
-const authController = require('./controllers/authController'); 
-const dotenv = require('dotenv');
-
-
+const authController = require('./controllers/authController');
 
 const PORT = 3001;
-dotenv.config();
+require('dotenv').config();
 
 // Connect to MongoDB
 const connect = async () => {
+  console.log('Attempting to connect to MongoDB...');
   try {
-      await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.p3yw9uj.mongodb.net/${process.env.DB_NAME}`, {
-
+      await mongoose.connect(process.env.MONGO_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
