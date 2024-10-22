@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
-const authController = require('./controllers/authController');
 
 const PORT = 3001;
 require('dotenv').config();
@@ -24,11 +23,8 @@ const connect = async () => {
 
 connect();
 
-app.use(cors({ origin: 'http://localhost:4200' }));
+app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(bodyParser.json());
-
-// Use controllers for routing
-app.use('/auth', authController); 
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
