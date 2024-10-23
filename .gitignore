@@ -1,2 +1,3 @@
-node_modules/
-.env
+# Feed-Backend/.gitignore
+Feed-Backend-API-Gateway/.env
+Feed-Backend-API-Gateway/node_modules/
