@@ -3,4 +3,5 @@ Feed-Backend-API-Gateway/.env
 Feed-Backend-API-Gateway/node_modules/
 
 #Feed-Backend-Authentication-Service
-Feed-Backend-Authentication-Service/node_modules
+Feed-Backend-Authentication-Service/node_modules/
+Feed-Backend-Authentication-Service/.env

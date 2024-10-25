@@ -1,13 +1,13 @@
 // authentication-service/models/userModel.js
+
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/dbConfig');
+const sequelize = require('../config/dbConfig'); // Import the Sequelize instance
 
 // Define the User model
 const User = sequelize.define('User', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: Sequelize.UUIDV4,
-    allowNull: false,
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true,
   },
   username: {
@@ -28,7 +28,12 @@ const User = sequelize.define('User', {
     allowNull: false,
   },
 }, {
-  timestamps: true, // Automatically adds createdAt and updatedAt fields
+  timestamps: true, // This will add createdAt and updatedAt fields automatically
 });
+
+// Sync model with MySQL table
+User.sync()
+  .then(() => console.log('User table created'))
+  .catch(err => console.log('Error creating table:', err));
 
 module.exports = User;
