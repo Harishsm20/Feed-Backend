@@ -1,39 +1,31 @@
-// authentication-service/models/userModel.js
+// authentication-service/models/otpModel.js
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/dbConfig');
 
-// Define the User model
-const User = sequelize.define('User', {
+// Define the OTP model
+const Otp = sequelize.define('Otp', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
-    validate: {
-      isEmail: true,
-    },
   },
-  password: {
+  otp: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  createdAt: {
+  expiresAt: {
     type: DataTypes.DATE,
-    defaultValue: Sequelize.NOW,
+    allowNull: false,
   },
 });
 
 // Sync model with MySQL table
-User.sync()
-  .then(() => console.log('User table created'))
+Otp.sync()
+  .then(() => console.log('Otp table created'))
   .catch(err => console.log('Error creating table:', err));
 
-module.exports = User;
+module.exports = Otp;
