@@ -6,7 +6,9 @@
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.1",
-    "nodemailer": "^6.9.15"
+    "mysql2": "^3.11.3",
+    "nodemailer": "^6.9.15",
+    "sequelize": "^6.37.5"
   },
   "name": "jwt-course",
   "version": "1.0.0",
@@ -16,8 +18,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js",
-    "server": "nodemon server2.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",

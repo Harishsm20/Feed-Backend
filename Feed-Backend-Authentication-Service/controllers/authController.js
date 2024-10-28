@@ -1,8 +1,8 @@
 // authentication-service/controllers/authController.js
 const express = require('express');
 const router = express.Router();
-const User = require('../models/userModel');  // Sequelize model
-const Otp = require('../models/otpModel');    // Sequelize model
+const User = require('../models/userModel');  
+const Otp = require('../models/otpModel');    
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
@@ -27,7 +27,7 @@ transporter.verify((error, success) => {
 
 // Function to generate random OTP
 const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString(); 
+    return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 // Signup with OTP
@@ -86,8 +86,8 @@ router.post('/login', async (req, res) => {
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
-            const payLoad = { id: user.id, email: user.email };
-            const accessToken = jwt.sign(payLoad, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            const payload = { id: user.id, email: user.email };
+            const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
             res.json({ accessToken });
         } else {
             res.status(401).json({ message: "Incorrect password" });
@@ -97,3 +97,57 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
+
+// Request Password Reset OTP
+router.post('/request-password-reset', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const otpCode = generateOTP();
+        const otpExpiration = new Date(Date.now() + 2 * 60 * 1000); // OTP valid for 2 mins
+
+        await Otp.upsert({ email, otp: otpCode, expiresAt: otpExpiration });
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Password Reset OTP",
+            text: `Your OTP for password reset is ${otpCode}. This OTP is valid for 2 minutes.`,
+        });
+
+        res.json({ message: "Password reset OTP sent to your email" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Reset Password using OTP
+router.post('/reset-password', async (req, res) => {
+    const { email, newPassword, otp } = req.body;
+
+    try {
+        const otpRecord = await Otp.findOne({ where: { email } });
+        if (!otpRecord || otpRecord.otp !== otp || new Date() > otpRecord.expiresAt) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await User.update({ password: hashedPassword }, { where: { email } });
+
+        // Remove OTP after password reset
+        await Otp.destroy({ where: { email } });
+
+        res.status(200).json({ message: "Password reset successful" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+module.exports = router;

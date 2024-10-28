@@ -1,88 +1,38 @@
+// authentication-service/server.js
 const express = require('express');
-const app = express();
 const cors = require('cors');
+const dotenv = require('dotenv');
+const sequelize = require('./config/dbConfig'); 
+const authController = require('./controllers/authController'); 
+const authenticateToken = require('./middleware/authMiddleware');
 
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
-const authenticateToken = require('./middleware/authenticateToken');
-const {setAuthHeader, updateToken} = require('./middleware/setAuthHeader');
-const connectDb = require('./DB/db')
-const authController = require('./controllers/authController')
+dotenv.config();
 
-connectDb();
+const app = express();
+const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
-app.use(setAuthHeader);
-
-const ids =[
-    {
-        email : "deadpool@gmail.com",
-        password: "d"
-    },
-    {
-        email: "wolverine@gmail.com",
-        password: "w"
-    }
-]
-
-const users = [
-    {
-        name: "Wade Willson",
-        supName: "DeadPool"
-    },
-    {
-        name: "Logan",
-        supName: "Wolverine"
-    },
-] 
-
 app.use(cors({ origin: process.env.CLIENT_URL })); 
 
-app.get('/', (req, res) => {
-    res.json(users);
-})
+// Test DB connection
+sequelize.authenticate()
+  .then(() => console.log('Database connected successfully'))
+  .catch(err => console.log('Error connecting to the database:', err));
 
-app.use('/api/auth', authController);
+// Sync database models (User and Otp)
+sequelize.sync()
+  .then(() => console.log('Tables synced with the database'))
+  .catch(err => console.log('Error syncing tables:', err));
 
-app.post('/signup', (req, res) =>{
-    const {name, email, password} = req.body;
-    const user = ids.find((u) => u.email === email)
+// Routes
+app.use('/api/auth', authController); 
 
-    if(!user){
-        ids.push({email, password})
-        res.status(201).json({message: "Signup Successfull"})    
-    }
-    else{
-        res.status(409).json({ message: "User already exists" });
-    }
-})
+// Protected route example (requires JWT token)
+app.get('/api/protected', authenticateToken, (req, res) => {
+  res.json({ message: `Welcome ${req.user.email}, this is a protected route!` });
+});
 
-app.post('/login', (req, res) => {
-    // Auth
-    const {email, password} = req.body;
-    const user  = ids.find((u) => u.email === email);
-    
-    if(user){
-        if(user.password === password){
-            const accessToken = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET);
-            updateToken(accessToken)
-            res.json({accessToken: accessToken, response: "Success"})
-            console.log("login success")
-        }
-        else{
-            console.log("Password Incorrect")
-            res.json("Password Incorrect")
-        }
-    }
-    else{
-        res.sendStatus(404);
-    }    
-})
-
-app.get('/names',authenticateToken, (req, res) =>{
-    console.log(req.user.supName);
-    res.json(users.filter(user => user.name === req.user.name));
-})
-
-
-app.listen(3000) ? console.log(`Server started in port - ${3000}`): console.log("Server crashed");
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Authentication service running on port ${PORT}`);
+});
