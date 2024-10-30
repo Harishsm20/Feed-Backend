@@ -2,14 +2,14 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/dbConfig');
 
-// Define the User model
+// Define the User model with explicit table name
 const User = sequelize.define('User', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   },
-  name: {
+  username: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -29,11 +29,13 @@ const User = sequelize.define('User', {
     type: DataTypes.DATE,
     defaultValue: Sequelize.NOW,
   },
+}, {
+  tableName: 'users', // Explicitly set the table name to 'users'
 });
 
 // Sync model with MySQL table
 User.sync()
-  .then(() => console.log('User table created'))
+  .then(() => console.log('Users table created'))
   .catch(err => console.log('Error creating table:', err));
 
 module.exports = User;
