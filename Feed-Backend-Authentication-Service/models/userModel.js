@@ -9,6 +9,14 @@ const User = sequelize.define('User', {
     autoIncrement: true,
     primaryKey: true,
   },
+  firstName: { 
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  lastName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   username: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -30,7 +38,7 @@ const User = sequelize.define('User', {
     defaultValue: Sequelize.NOW,
   },
 }, {
-  tableName: 'users', // Explicitly set the table name to 'users'
+  tableName: 'users', 
 });
 
 // Sync model with MySQL table

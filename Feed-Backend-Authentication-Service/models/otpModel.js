@@ -21,6 +21,8 @@ const Otp = sequelize.define('Otp', {
     type: DataTypes.DATE,
     allowNull: false,
   },
+}, {
+  timestamps: false,
 });
 
 // Sync model with MySQL table
