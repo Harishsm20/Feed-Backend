@@ -1,9 +1,4 @@
-# Feed-Backend/.gitignore
-Feed-Backend-API-Gateway/.env
-Feed-Backend-API-Gateway/node_modules/
+.env
+README.md
 
-#Feed-Backend-Authentication-Service
-Feed-Backend-Authentication-Service/node_modules/
-Feed-Backend-Authentication-Service/.env
-
-Feed-Backend-Blog-Service/node_modules/
+/node_modules
