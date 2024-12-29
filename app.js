@@ -4,8 +4,8 @@ import passport from 'passport';
 import dotenv from 'dotenv';
 import express from 'express';
 import connectDB from './config/db.js';
-import authRoutes from './routes/auth.js';
-import googleAuthRoutes from './routes/googleAuth.js';
+import authRoutes from './routes/auth.route.js';
+import googleAuthRoutes from './routes/googleAuth.route.js';
 import cors from 'cors'
 import './config/passport.js';
 dotenv.config();
