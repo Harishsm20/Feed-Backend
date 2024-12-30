@@ -18,7 +18,12 @@ router.get(
 
     try {
       // Check if user is verified
-      const user = await User.findById(id);
+      let user = await User.findById(id);
+
+      if (!user) {
+        // If user is not found, create a new one
+        user = await User.create({ id, email, name, isVerified: false });
+      }
 
       if (!user.isVerified) {
         // Generate a verification token
@@ -39,20 +44,16 @@ router.get(
         });
       }
 
-      // Generate JWT and set cookie
-      const payload = {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-      };
-
+      // Generate JWT
+      const payload = { id: user._id, email: user.email, name: user.name };
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
+      // Set JWT token as a cookie
       res.cookie('jwt', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 1000, // 1 hour
         sameSite: 'Strict',
+        maxAge: 60 * 60 * 1000, // 1 hour
       });
 
       res.redirect(`${process.env.CLIENT_URI}/dashboard`);
