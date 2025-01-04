@@ -7,15 +7,18 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/auth.route.js';
 import googleAuthRoutes from './routes/googleAuth.route.js';
 import cors from 'cors'
+import cookieParser from 'cookie-parser';
 import './config/passport.js';
+
 dotenv.config();
 connectDB();
 
 const app = express();
+app.use(cookieParser())
 app.use(express.json());
 app.use(cors({
     origin: process.env.CLIENT_URI,
-    // methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
 

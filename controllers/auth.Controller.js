@@ -76,18 +76,28 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const verifyToken = async (req, res) => {
-    const token = req.cookies.jwt;
-    console.log(token)
-  
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-  
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      res.status(200).json({ message: 'Token valid', user: decoded });
-    } catch (error) {
-      res.status(401).json({ message: 'Invalid or expired token' });
-    }
-  
+  if (req.session.isVerified) {
+    console.log('Session verified');
+    return res.status(200).json({ message: 'Already verified' });
+  }
+
+  const token = req.cookies.jwt;
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.session.isVerified = true; 
+    res.status(200).json({ message: 'Token valid', user: decoded });
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid or expired token' });
+  }
+};
+
+export const logout = async(req, res) =>{
+  req.session.destroy(() =>{
+    res.clearCookie('jwt');
+    res.status(200).json({message: "Logged out"});
+  })
 }
