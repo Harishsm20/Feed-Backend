@@ -77,6 +77,7 @@ export const verifyEmail = async (req, res) => {
 
 export const verifyToken = async (req, res) => {
   if (req.session.isVerified) {
+    console.log(req.cookies.jwt);
     console.log('Session verified');
     return res.status(200).json({ message: 'Already verified' });
   }
