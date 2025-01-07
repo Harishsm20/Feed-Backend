@@ -3,6 +3,8 @@ import passport from 'passport';
 import jwt from 'jsonwebtoken';
 import sendMail from '../utils/emailService.js';
 import User from '../models/User.js';
+import Profile from '../models/Profile.js';
+import { createUserWithProfile } from '../utils/user.service.js';
 
 const router = express.Router();
 
@@ -14,33 +16,51 @@ router.get(
   '/callback',
   passport.authenticate('google', { failureRedirect: '/login', session: true }),
   async (req, res) => {
-    const { id, email, name } = req.user;
+    const { id: googleId, email, name } = req.user;
 
     try {
-      // Check if user is verified
-      let user = await User.findById(id);
+      // Check if user already exists by email
+      let user = await User.findOne({ email });
 
-      if (!user) {
-        // If user is not found, create a new one
-        user = await User.create({ id, email, name, isVerified: false });
-      }
+      if (user) {
+        // If user exists, check if it already has a Google ID
+        if (!user.googleId) {
+          user.googleId = googleId;
+          user.isVerified = true; // Mark Google users as verified
+          await user.save();
+        }
+      } else {
+        // If user doesn't exist, create a new user and profile
+        user = await createUserWithProfile({
+          name,
+          email,
+          password: null, // No password for Google sign-up
+          googleId,
+          isVerified: true, // Google users are verified by default
+        });
 
-      if (!user.isVerified) {
-        // Generate a verification token
-        const verificationToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-
-        // Send verification email
-        const verificationLink = `${process.env.CLIENT_URI}/verify-email?token=${verificationToken}`;
+        // Send a welcome email
         const emailContent = `
-          <h1>Verify Your Email</h1>
+          <h1>Welcome to Our Platform</h1>
           <p>Hello ${name || email.split('@')[0]},</p>
-          <p>Please verify your email by clicking the link below:</p>
-          <a href="${verificationLink}">Verify Email</a>
+          <p>We're excited to have you on board. Your profile has been created successfully.</p>
+          <p>Feel free to update your profile and explore the platform.</p>
         `;
         await sendMail({
           to: email,
-          subject: 'Email Verification Required',
+          subject: 'Welcome to Our Platform',
           html: emailContent,
+        });
+      }
+
+      // Ensure a profile exists for the user
+      const profileExists = await Profile.findOne({ user: user._id });
+      if (!profileExists) {
+        await Profile.create({
+          user: user._id,
+          userName: name.toLowerCase().replace(/\s+/g, '_'),
+          bio: '',
+          socialLinks: {},
         });
       }
 
@@ -50,7 +70,6 @@ router.get(
 
       // Set JWT token as a cookie
       res.cookie('jwt', token, {
-        // httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Lax',
         maxAge: 60 * 60 * 1000, // 1 hour
@@ -58,7 +77,7 @@ router.get(
 
       res.redirect(`${process.env.CLIENT_URI}/dashboard`);
     } catch (error) {
-      console.error(error);
+      console.error('Error during Google sign-up:', error);
       res.redirect('/login'); // Redirect to login on error
     }
   }

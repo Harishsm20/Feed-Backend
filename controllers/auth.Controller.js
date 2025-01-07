@@ -2,40 +2,47 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import sendMail from '../utils/emailService.js';
+import { createUserWithProfile } from '../utils/user.service.js';
 
 export const register = async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
-  const isVerified = false;
 
   try {
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
     const name = `${firstName} ${lastName}`;
-    const user = await User.create({ name, email, password, isVerified });
+
+    // Create user and profile
+    const user = await createUserWithProfile({
+      name,
+      email,
+      password,
+      googleId: null,
+      isVerified: false,
+    });
 
     // Generate a verification token
     const verificationToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-    // Verification email content
-    const verificationLink = `http://localhost:5173/verify-email?token=${verificationToken}`;
+    // Send verification email
+    const verificationLink = `${process.env.CLIENT_URI}/verify-email?token=${verificationToken}`;
     const emailContent = `
       <h1>Welcome to Our Platform</h1>
       <p>Hello ${name},</p>
       <p>Please verify your email by clicking the link below:</p>
       <a href="${verificationLink}">Verify Email</a>
     `;
-    // Send verification email
     await sendMail({
       to: email,
       subject: 'Email Verification',
       html: emailContent,
     });
-    console.log('Signup and email sent');
+
     res.status(201).json({ message: 'User registered. Please verify your email.', user });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Error during registration' });
   }
 };
 
@@ -77,8 +84,6 @@ export const verifyEmail = async (req, res) => {
 
 export const verifyToken = async (req, res) => {
   if (req.session.isVerified) {
-    console.log(req.cookies.jwt);
-    console.log('Session verified');
     return res.status(200).json({ message: 'Already verified' });
   }
 
