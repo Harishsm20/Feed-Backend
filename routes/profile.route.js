@@ -6,6 +6,6 @@ const router = express.Router();
 // Get profile details
 router.get('/me',getUserFromToken);
 router.put('/me', editProfile)
-router.get("/check-username", isUserNamePresent);
+router.post("/check-username", isUserNamePresent);
 
 export default router;

@@ -55,7 +55,7 @@ export const getUserWithProfile = async (req, res) => {
       if (!user) return res.status(404).json({ message: 'User not found' });
   
       const profile = await Profile.findOne({ user: user._id });
-      console.log("Profile: ", profile);
+      // console.log("Profile: ", profile);
       if (!profile) return res.status(404).json({ message: 'Profile not found' });
   
       res.status(200).json({ user, profile });
@@ -85,8 +85,8 @@ export const getUserWithProfile = async (req, res) => {
   // Availabilty of UserName
   export const isUserNamePresent =  async (req, res) => {
     const { username } = req.body;
-    console.log(username);
-  
+    const token = req.cookies.jwt;
+
     if (!username) {
       return res.status(400).json({ error: "Username is required." });
     }
@@ -94,6 +94,10 @@ export const getUserWithProfile = async (req, res) => {
     try {
       const user = await Profile.findOne({ userName: username }); 
       if (user) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if(decoded.id === user.user.toString()){
+          return res.json({isAvailable: true});
+        }
         return res.json({ isAvailable: false });
       } else {
         return res.json({ isAvailable: true });
