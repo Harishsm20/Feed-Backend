@@ -68,11 +68,10 @@ export const getUserWithProfile = async (req, res) => {
   export const editProfile = async (req, res) => {
     try {
       const userId = req.user.id; // Assuming middleware adds user info to req
-      const { bio, socialLinks } = req.body;
-  
+      const { bio, socialLinks, header } = req.body;  
       const profile = await Profile.findOneAndUpdate(
         { user: userId },
-        { bio, socialLinks },
+        { bio, socialLinks, header },
         { new: true }
       );
   
