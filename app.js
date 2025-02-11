@@ -3,13 +3,16 @@ import MongoStore from 'connect-mongo';
 import passport from 'passport';
 import dotenv from 'dotenv';
 import express from 'express';
+import bodyParser from "body-parser";
+
 // Config files
 import connectDB from './config/db.js';
 
 // Route Files
 import authRoutes from './routes/auth.route.js';
 import googleAuthRoutes from './routes/googleAuth.route.js';
-import profileRoutes from './routes/profile.route.js' 
+import profileRoutes from './routes/profile.route.js';
+import imageRoutes from './routes/image.route.js'
 
 import cors from 'cors'
 import cookieParser from 'cookie-parser';
@@ -27,6 +30,10 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
+
+// Increase JSON and URL-encoded payload limits
+app.use(bodyParser.json({ limit: "50mb" })); // Adjust limit as needed
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 // Express-Session Configuration
 app.use(
@@ -48,5 +55,6 @@ app.use(passport.session());
 app.use('/api/auth', authRoutes);
 app.use('/api/auth/google', googleAuthRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/image', imageRoutes);
 
 export default app;
