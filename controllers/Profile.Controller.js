@@ -2,6 +2,8 @@ import User from '../models/User.js';
 import Profile from '../models/Profile.js';
 import jwt from 'jsonwebtoken'
 
+import { uploadImageInBucket, getImageURL } from './image.controller.js';
+
 // Register a new user and create a profile
 export const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
@@ -27,19 +29,21 @@ export const registerUser = async (req, res) => {
 
 
 export const getUserWithProfile = async (req, res) => {
+  try {
     const { userId } = req.params;
-  
-    try {
-      const user = await User.findById(userId).populate('profile');
-      if (!user) return res.status(404).json({ message: 'User not found' });
-  
-      const profile = await Profile.findOne({ user: user._id });
-      res.status(200).json({ user, profile });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error fetching user and profile' });
-    }
-  };
+    const profile = await Profile.findOne({ user: userId });
+
+    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+
+    // Get signed URL for profile image
+    const imageUrl = profile.profileImg ? await getImageURL(profile.profileImg) : null;
+
+    res.status(200).json({ profile, imageUrl });
+  } catch (error) {
+    console.error("Error fetching user and profile:", error);
+    res.status(500).json({ message: "Error fetching profile" });
+  }
+};
 
   
   // Get profile details
@@ -106,3 +110,40 @@ export const getUserWithProfile = async (req, res) => {
       return res.status(500).json({ error: "Internal server error." });
     }
   }
+
+
+  export const updateProfile = async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { userName, bio, header, socialLinks } = req.body;
+      const profileImgFile = req.file; // Uploaded image file
+  
+      const profile = await Profile.findOne({ user: userId });
+      if (!profile) return res.status(404).json({ message: 'Profile not found' });
+  
+      let uploadedImgName = profile.profileImg; // Keep existing image if not changed
+  
+      // If a new image is uploaded, store it in S3
+      if (profileImgFile) {
+        const imgName = await uploadImageInBucket(profileImgFile.buffer, profileImgFile.mimetype);
+        uploadedImgName = imgName; // Save new image name
+      }
+  
+      // Update profile details
+      profile.userName = userName || profile.userName;
+      profile.bio = bio || profile.bio;
+      profile.header = header || profile.header;
+      profile.socialLinks = socialLinks || profile.socialLinks;
+      profile.profileImg = uploadedImgName;
+  
+      await profile.save();
+      
+      // Generate signed URL for the image
+      const imageUrl = uploadedImgName ? await getImageURL(uploadedImgName) : null;
+  
+      res.status(200).json({ message: "Profile updated", profile, imageUrl });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Error updating profile" });
+    }
+  };
