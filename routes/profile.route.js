@@ -1,12 +1,18 @@
 import express from 'express';
-import { getUserFromToken, editProfile, isUserNamePresent, getUserWithProfile, updateProfile } from '../controllers/Profile.Controller.js'; 
+import multer from 'multer';
+import { getUserFromToken, editProfile, isUserNamePresent, getUserWithProfile, updateProfile } from '../controllers/Profile.Controller.js';
 
 const router = express.Router();
-const upload = multer(); // Middleware to handle file uploads
+
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 50* 1024 * 1024 } // 5MB limit
+});
 
 // Get profile details
-router.get('/me',getUserFromToken);
-router.put('/me', editProfile)
+router.get('/me', getUserFromToken);
+router.put('/me', editProfile);
 router.post("/check-username", isUserNamePresent);
 
 // Update profile (including profile image)
