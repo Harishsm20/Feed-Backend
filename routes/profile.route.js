@@ -5,14 +5,11 @@ import { getUserFromToken, editProfile, isUserNamePresent, getUserWithProfile, u
 const router = express.Router();
 
 const storage = multer.memoryStorage();
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 50* 1024 * 1024 } 
-});
+const upload = multer({ storage: storage });
 
 // Get profile details
 router.get('/me', getUserFromToken);
-router.put('/me', editProfile);
+router.put('/me',upload.single("profileImg"), editProfile);
 router.post("/check-username", isUserNamePresent);
 
 // Update profile (including profile image)
