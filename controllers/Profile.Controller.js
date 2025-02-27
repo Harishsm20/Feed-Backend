@@ -70,21 +70,7 @@ export const getUserWithProfile = async (req, res) => {
   };
   
   //Edit Profile
-  // export const editProfile = async (req, res) => {
-  //   try {
-  //     const userId = req.user.id; // Assuming middleware adds user info to req
-  //     const { bio, socialLinks, header } = req.body;  
-  //     const profile = await Profile.findOneAndUpdate(
-  //       { user: userId },
-  //       { bio, socialLinks, header },
-  //       { new: true }
-  //     );
-  
-  //     res.json({ profile });
-  //   } catch (err) {
-  //     res.status(500).json({ message: "Failed to update profile" });
-  //   }
-  // };
+
   export const editProfile = async (req, res) => {
     console.log(Date.now(), "reqest file",req.file);
     try {
