@@ -72,14 +72,23 @@ export const getUserWithProfile = async (req, res) => {
   //Edit Profile
 
   export const editProfile = async (req, res) => {
-    console.log(Date.now(), "reqest file",req.file);
+    // console.log(Date.now(), "reqest file",req.file);
+    const token = req.cookies.jwt;
+    console.log("Token, ", token);
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
-        const userId = req.user.id;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id).select('-password'); // Exclude password
+      if (!user) return res.status(404).json({ message: 'User not found' });
+  
+        // const userId = req.user.id;
         const { bio, socialLinks, header } = req.body;
         const profileImgFile = req.file; 
 
         // Find the profile
-        const profile = await Profile.findOne({ user: userId });
+        const profile = await Profile.findOne({ user: user._id });
         if (!profile) return res.status(404).json({ message: 'Profile not found' });
 
         let uploadedImgName = profile.profileImg;
