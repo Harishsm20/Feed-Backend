@@ -19,6 +19,7 @@ const s3 = new S3Client({
     secretAccessKey: secretAccessKey,
   },
   region: bucketRegion,
+  endpoint: `https://s3.${bucketRegion}.amazonaws.com`,
 });
 
 // Generate a random image name

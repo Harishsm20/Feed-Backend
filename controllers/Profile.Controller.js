@@ -74,7 +74,6 @@ export const getUserWithProfile = async (req, res) => {
   export const editProfile = async (req, res) => {
     // console.log(Date.now(), "reqest file",req.file);
     const token = req.cookies.jwt;
-    console.log("Token, ", token);
     if (!token) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
