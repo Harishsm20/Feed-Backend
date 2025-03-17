@@ -5,6 +5,9 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import crypto from "crypto";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables
 
 // Environment variables
 const bucketName = process.env.BUCKET_NAME;
@@ -14,12 +17,12 @@ const secretAccessKey = process.env.SECRET_ACCESS_KEY;
 
 // Initialize S3 Client
 const s3 = new S3Client({
+  region: bucketRegion,
   credentials: {
     accessKeyId: accessKey,
     secretAccessKey: secretAccessKey,
   },
-  region: bucketRegion,
-  endpoint: `https://s3.${bucketRegion}.amazonaws.com`,
+  forcePathStyle: true, // Use path-style access if needed
 });
 
 // Generate a random image name
@@ -37,7 +40,6 @@ export const uploadImageInBucket = async (fileBuffer, mimeType) => {
 
     const command = new PutObjectCommand(params);
     await s3.send(command);
-    // console.log(imgName);
 
     return imgName;
   } catch (error) {
@@ -48,9 +50,8 @@ export const uploadImageInBucket = async (fileBuffer, mimeType) => {
 
 export const getImageURL = async (imgName) => {
   try {
-    // Ensure imgName is a string, not an array
     if (Array.isArray(imgName)) {
-      imgName = imgName[0]; // Get the first element if imgName is an array
+      imgName = imgName[0]; // Handle if imgName is an array
     }
 
     if (!imgName) {
@@ -64,7 +65,6 @@ export const getImageURL = async (imgName) => {
 
     const command = new GetObjectCommand(getObjectParams);
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL valid for 1 hour
-    // console.log(url);
 
     return url;
   } catch (error) {
