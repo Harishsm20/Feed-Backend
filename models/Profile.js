@@ -24,7 +24,7 @@ const profileSchema = new mongoose.Schema(
     socialLinks: {
       instagram: { type: String, default: null },
       linkedin: { type: String, default: null },
-      github: { type: String, default: null },
+      snapchat: { type: String, default: null },
       twitter: { type: String, default: null },
     },
     posts: { type: Number, default: 0 },

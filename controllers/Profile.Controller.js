@@ -2,7 +2,6 @@ import sharp from 'sharp';
 import User from '../models/User.js';
 import Profile from '../models/Profile.js';
 import jwt from 'jsonwebtoken'
-
 import { uploadImageInBucket, getImageURL } from './image.controller.js';
 
 // Register a new user and create a profile
@@ -60,15 +59,18 @@ export const getUserWithProfile = async (req, res) => {
       if (!user) return res.status(404).json({ message: 'User not found' });
   
       const profile = await Profile.findOne({ user: user._id });
-      // console.log("Profile: ", profile);
+      console.log("Profile: ", profile);
+
       if (!profile) return res.status(404).json({ message: 'Profile not found' });
+      const imageUrl = profile.profileImg ? await getImageURL(profile.profileImg) : null;
   
-      res.status(200).json({ user, profile });
+      res.status(200).json({ user, profile , imageUrl});
     } catch (error) {
       res.status(401).json({ message: 'Invalid or expired token' });
     }
   };
   
+
   //Edit Profile
 
   export const editProfile = async (req, res) => {
@@ -82,40 +84,46 @@ export const getUserWithProfile = async (req, res) => {
       const user = await User.findById(decoded.id).select('-password'); // Exclude password
       if (!user) return res.status(404).json({ message: 'User not found' });
   
-        // const userId = req.user.id;
-        const { bio, socialLinks, header } = req.body;
-        const profileImgFile = req.file; 
+        let { bio, socialLinks, header } = req.body;
+        const profileImgFile = req.file;
+        let uploadedImgName = null;
+
+        if (typeof socialLinks === 'string') {
+          try {
+            socialLinks = JSON.parse(socialLinks);
+          } catch (error) {
+            return res.status(400).json({ message: 'Invalid socialLinks format' });
+          }
+        }
+
+        console.log(profileImgFile);
+        if(profileImgFile != null){
+        try {
+            uploadedImgName = await uploadImageInBucket(
+              profileImgFile.buffer,
+              profileImgFile.mimetype
+            );
+
+            // res.status(200).json({ imageUrl });
+          } catch (error) {
+            console.error("Error in getImageURL route:", error);
+            // res.status(500).json({ message: "Error generating image URL" });
+          }
+        }
 
         // Find the profile
         const profile = await Profile.findOne({ user: user._id });
         if (!profile) return res.status(404).json({ message: 'Profile not found' });
 
-        let uploadedImgName = profile.profileImg;
-
-        // Handle image upload if a new file is provided
-        if (profileImgFile) {
-            const compressedImageBuffer = await sharp(profileImgFile.buffer)
-                .resize({ width: 500 }) 
-                .jpeg({ quality: 80 })
-                .toBuffer();
-
-            // Upload the compressed image
-            const imgName = await uploadImageInBucket(compressedImageBuffer, "image/jpeg");
-            uploadedImgName = imgName; // Update image name
-        }
-
         // Update profile details
         profile.bio = bio || profile.bio;
         profile.socialLinks = socialLinks || profile.socialLinks;
         profile.header = header || profile.header;
-        profile.profileImg = uploadedImgName;
+        profile.profileImg = uploadedImgName || null;
 
         await profile.save();
 
-        // Generate signed URL for the image
-        const imageUrl = uploadedImgName ? await getImageURL(uploadedImgName) : null;
-
-        res.status(200).json({ message: "Profile updated", profile, imageUrl });
+        res.status(200).json({ message: "Profile updated", profile, uploadedImgName });
     } catch (err) {
         console.error("Error updating profile:", err);
         res.status(500).json({ message: "Failed to update profile" });
