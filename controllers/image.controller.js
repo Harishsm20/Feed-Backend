@@ -2,6 +2,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import crypto from "crypto";
@@ -70,5 +71,26 @@ export const getImageURL = async (imgName) => {
   } catch (error) {
     console.error("Error generating signed URL for image:", imgName, error);
     throw new Error("Failed to generate signed URL");
+  }
+};
+
+export const deleteImageFromBucket = async (imgName) => {
+  try {
+    if (!imgName) {
+      console.warn("No image name provided for deletion.");
+      return;
+    }
+
+    const deleteParams = {
+      Bucket: bucketName,
+      Key: imgName,
+    };
+
+    const command = new DeleteObjectCommand(deleteParams);
+    await s3.send(command);
+
+  } catch (error) {
+    console.error("Error deleting image from S3:", error);
+    throw new Error("Failed to delete image");
   }
 };
