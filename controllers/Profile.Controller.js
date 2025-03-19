@@ -62,7 +62,6 @@ export const getUserWithProfile = async (req, res) => {
 
       if (!profile) return res.status(404).json({ message: 'Profile not found' });
       const imageUrl = profile.profileImg ? await getImageURL(profile.profileImg) : null;
-  
       res.status(200).json({ user, profile , imageUrl});
     } catch (error) {
       res.status(401).json({ message: 'Invalid or expired token' });
@@ -84,11 +83,11 @@ export const getUserWithProfile = async (req, res) => {
   
       let { bio, socialLinks, header } = req.body;
       const profileImgFile = req.file;
-      let uploadedImgName = null;
-
+      
       // Find the profile
       const profile = await Profile.findOne({ user: user._id });
       if (!profile) return res.status(404).json({ message: 'Profile not found' });
+      let uploadedImgName = profile.profileImg || null;
       
       if (typeof socialLinks === 'string') {
         try {
@@ -97,9 +96,8 @@ export const getUserWithProfile = async (req, res) => {
             return res.status(400).json({ message: 'Invalid socialLinks format' });
           }
         }
-
-        // Check if new is being uploaded
-        if (profileImgFile && profile.profileImg) {
+        // Check if new is being uploaded""
+        if (profileImgFile != null && profile.profileImg != null) {
           await deleteImageFromBucket(profile.profileImg);
         }
 
@@ -118,7 +116,7 @@ export const getUserWithProfile = async (req, res) => {
         profile.bio = bio || profile.bio;
         profile.socialLinks = socialLinks || profile.socialLinks;
         profile.header = header || profile.header;
-        profile.profileImg = uploadedImgName || null;
+        profile.profileImg = uploadedImgName;
 
         await profile.save();
 
