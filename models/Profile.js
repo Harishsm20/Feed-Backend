@@ -27,7 +27,7 @@ const profileSchema = new mongoose.Schema(
       snapchat: { type: String, default: null },
       twitter: { type: String, default: null },
     },
-    posts: { type: Number, default: 0 },
+    posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Blogs" }], // Store post IDs
     followers: { type: Number, default: 0 },
     following: { type: Number, default: 0 },
   },

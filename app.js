@@ -13,7 +13,10 @@ import authRoutes from './routes/auth.route.js';
 import googleAuthRoutes from './routes/googleAuth.route.js';
 import profileRoutes from './routes/profile.route.js';
 import imageRoutes from './routes/image.route.js'
+import blogRoutes from './routes/blog.route.js'
+import tagRoutes from './routes/tag.route.js'
 
+// Required modules
 import cors from 'cors'
 import cookieParser from 'cookie-parser';
 import './config/passport.js';
@@ -56,5 +59,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/auth/google', googleAuthRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/image', imageRoutes);
+app.use('/api/blog',blogRoutes)
+app.use('/api/tag',tagRoutes)
 
 export default app;

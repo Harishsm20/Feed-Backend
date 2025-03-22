@@ -16,7 +16,7 @@ const blogSchema = new mongoose.Schema(
     }, // URL of the main image
     author: { 
       type: mongoose.Schema.Types.ObjectId, 
-      ref: "User", 
+      ref: "Profile", 
       required: true 
     },
     subImages: { 

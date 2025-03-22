@@ -70,7 +70,6 @@ export const getUserWithProfile = async (req, res) => {
   
 
   //Edit Profile
-
   export const editProfile = async (req, res) => {
     const token = req.cookies.jwt;
     if (!token) {
