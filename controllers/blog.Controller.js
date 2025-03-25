@@ -71,7 +71,7 @@ export const deleteBlog = async (req, res) => {
         const tag = await Tag.findById(tagId);
         if (tag) {
           tag.posts = tag.posts.filter(
-    dws        (postId) => postId.toString() !== blogId
+            (postId) => postId.toString() !== blogId
           );
           if (tag.posts.length === 0) {
             await Tag.findByIdAndDelete(tagId);
