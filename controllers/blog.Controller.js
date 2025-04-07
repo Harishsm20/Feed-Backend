@@ -3,6 +3,7 @@ import Tag from "../models/Tags.js";
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
 import jwt from "jsonwebtoken";
+import { uploadImageInBucket } from "./image.controller.js";
 
 // Search posts by tag name
 export const searchPostsByTag = async (req, res) => {
@@ -33,13 +34,28 @@ export const createBlog = async (req, res) => {
     const profile = await Profile.findOne({ user: user._id });
     if (!profile) return res.status(404).json({ message: "Profile not found" });
 
-    const { title, description, headImage, subImages, tags } = req.body;
+    let { title, description, /*subImages,*/ tags } = req.body;
+    let headImage = req.file;
+
+    let headImg = headImage || null;
+
+    if(headImage != null){
+      try{
+        headImg = await uploadImageInBucket(
+          headImage.buffer,
+          headImage.mimetype,
+        );
+      }
+      catch(err){
+        console.log("Error in uploading image")
+      }
+    }
 
     const newBlog = new Blog({
       title,
       description,
-      headImage,
-      subImages,
+      headImage: headImg,
+      // subImages,
       tags,
       author: user._id,
       profile: profile._id,
