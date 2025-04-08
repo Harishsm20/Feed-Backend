@@ -4,6 +4,7 @@ import User from "../models/User.js";
 import Profile from "../models/Profile.js";
 import jwt from "jsonwebtoken";
 import { uploadImageInBucket } from "./image.controller.js";
+import { getTagIds } from "./tag.Controller.js";
 
 // Search posts by tag name
 export const searchPostsByTag = async (req, res) => {
@@ -34,7 +35,12 @@ export const createBlog = async (req, res) => {
     const profile = await Profile.findOne({ user: user._id });
     if (!profile) return res.status(404).json({ message: "Profile not found" });
 
-    let { title, description, /*subImages,*/ tags } = req.body;
+    console.log(req.body)
+
+    let { title, description, /*subImages,*/} = req.body;
+    const tags = await getTagIds(req.body.tags);
+    
+
     let headImage = req.file;
 
     let headImg = headImage || null;
@@ -63,8 +69,21 @@ export const createBlog = async (req, res) => {
     await newBlog.save();
 
     // Store post ID in profile model
+    if (!Array.isArray(profile.posts)) {
+      profile.posts = [];
+    }
     profile.posts.push(newBlog._id);
     await profile.save();
+    
+    
+
+    await Promise.all(
+      tags.map((tagId) =>
+        Tag.findByIdAndUpdate(tagId, {
+          $addToSet: { posts: newBlog._id },
+        })
+      )
+    );
 
     res.status(201).json(newBlog);
   } catch (error) {
