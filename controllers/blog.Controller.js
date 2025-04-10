@@ -3,8 +3,26 @@ import Tag from "../models/Tags.js";
 import User from "../models/User.js";
 import Profile from "../models/Profile.js";
 import jwt from "jsonwebtoken";
-import { uploadImageInBucket } from "./image.controller.js";
+import { uploadImageInBucket, getImageURL} from "./image.controller.js";
+import { getPostsByIds } from "../utils/postService.js";
 import { getTagIds } from "./tag.Controller.js";
+
+// Read Post from Id
+export const fetchPostsFromIds = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || !ids.every(id => typeof id === "string")) {
+      return res.status(400).json({ message: "Invalid or missing post IDs" });
+    }
+
+    const posts = await getPostsByIds(ids);
+    res.status(200).json(posts);
+  } catch (err) {
+    console.error("Error fetching posts by IDs:", err);
+    res.status(500).json({ message: "Server error fetching posts" });
+  }
+};
 
 // Search posts by tag name
 export const searchPostsByTag = async (req, res) => {

@@ -1,8 +1,10 @@
 import sharp from 'sharp';
 import User from '../models/User.js';
 import Profile from '../models/Profile.js';
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
+// import {fetchPostsFromIds} from './blog.Controller';
 import { uploadImageInBucket, getImageURL, deleteImageFromBucket } from './image.controller.js';
+import { getPostsByIds } from '../utils/postService.js';
 
 // Register a new user and create a profile
 export const registerUser = async (req, res) => {
@@ -62,7 +64,10 @@ export const getUserWithProfile = async (req, res) => {
 
       if (!profile) return res.status(404).json({ message: 'Profile not found' });
       const imageUrl = profile.profileImg ? await getImageURL(profile.profileImg) : null;
-      res.status(200).json({ user, profile , imageUrl});
+
+      const posts = await getPostsByIds(profile.posts || []);
+
+      res.status(200).json({ user, profile , posts, imageUrl});
     } catch (error) {
       res.status(401).json({ message: 'Invalid or expired token' });
     }
