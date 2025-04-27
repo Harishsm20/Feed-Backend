@@ -28,8 +28,8 @@ const profileSchema = new mongoose.Schema(
       twitter: { type: String, default: null },
     },
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Blogs" }], // Store post IDs
-    followers: { type: Number, default: 0 },
-    following: { type: Number, default: 0 },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Profile" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "Profile" }],
   },
   { timestamps: true }
 );
