@@ -75,11 +75,19 @@ export const createBlog = async (req, res) => {
       }
     }
 
+    let subImages = [];
+    if (req.files?.subImages) {
+      const uploadPromises = req.files.subImages.map(async (file) =>
+        uploadImageInBucket(file.buffer, file.mimetype)
+      );
+      subImages = await Promise.all(uploadPromises);
+    }
+
     const newBlog = new Blog({
       title,
       description,
       headImage: headImg,
-      // subImages,
+      subImages,
       tags,
       author: user._id,
       profile: profile._id,
